@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <canvas width="600" height="300" id="webgl"></canvas>
+    <script src="./WebGL_Guide_Code/lib/webgl-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-matrix.js"></script>
+    <script src="./WebGL_Guide_Code/lib/webgl-debug.js"></script>
+    <script>
+        let VSHADER_SOURCE = 
+            'void main() {\n' +
+            ' gl_Position = vec4(0.0, 0.0, 0.0, 1.0); \n' +   // 坐标
+            ' gl_PointSize = 10.0;\n' + //尺寸
+            '}\n';
+        let FSHADER_SOURCE = 
+            'void main() {\n' +
+            ' gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' +　//　颜色
+            '}\n';
+        function main() {
+            var canvas = document.getElementById('webgl')
+            var gl = getWebGLContext(canvas)
+            // if (! initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)){
+            //     console.log('unable support')
+            // }
+            initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)
+            gl.clearColor(0.0, 0.0, 0.0, 1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.drawArrays(gl.POIONTS, 0, 1)
+        }
+        main()
+    </script>    
+</body>
+</html>
