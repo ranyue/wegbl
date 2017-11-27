@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas width="400" height="400" id="canvas"></canvas>
+    <script>
+        // const canvas = document.getElementById('canvas')
+        // const context = canvas.getContext('2d');
+
+        // context.beginPath();
+        // context.styleColor = '#ccc'
+        // context.arc(canvas.width / 2, canvas.height / 4, 80, Math.PI / 4, Math.PI, false)
+
+        // 特效菜单栏
+        // 半圆，可滑动，内部的物件可以点击
+
+        // 两个原型， 大圆盘北京
+        // 小菜单栏 
+        var menuSprite = function (dataArray, painter, behaviors) {
+            if (painter !== undefined) {
+                this.painter = painter
+            }
+            this.dataObj = 
+            this.top = 0
+            this.left = 0
+            this.width = 0
+            this.height = 0
+            this.velocityX = 0
+            this.velocityY = 0
+            this.visible = 0
+            this.imageUrl = ''
+            this.linkUrl = ''
+            this.isActive = false
+            this.animating = false
+            this.behaviors = behaviors || []
+            return this
+        }
+        menuSprite.prototype = {
+            paint: function (context) {
+                if (this.painter !== undefined && this.visible) {
+                    this.painter.paint(context).bind(this);
+                }
+            },
+            update: function (context, time) {
+                for (var i = 0; i < this.behaviors.length; ++i) {
+                    this.behaviors[i].execute(context, time).bind(this);
+                }
+            }
+        }
+        let dataArray = [
+            {
+                defaultImageurl:'',
+                activeImageUrl: '',
+                linkUrl: '',
+                text: '',
+                isActive: false
+            }
+        ]
+        let ActiveIndex = null
+        var menuSpritePainter = {
+            paint: function (context) {
+                var x = this.left + this.width / 2,
+                    y = this.top + this.height / 2,
+                    radius = this.width / 3
+                context.save()
+                context.beginPath()
+                // context.arc(x, y, radius, 0, Math.PI * 2, false)
+                // context.clip()
+                //
+                // 
+                context.restore()
+            }
+        }
+    </script>
+
+    <!-- 
+        1、画背景图，内圆，外圆，加一个内部的轮播图
+        2、外围菜单栏的确定
+            菜单的外围数据是一个数组，根据index 索引来确定 初始状态下每个菜单的位置
+            每个菜单的角度间距 PER_ANGLE = Math.PI * 2 / dataArray.length
+            偏移角度 offsetAngle = 0
+            中心点坐标
+            {
+                x0: canvas.width/2,
+                y0: canvas.height/2
+            }
+            每个菜单的位置{
+                x: width/2 + radius * Math.sin(PER_ANGLE * dataArray.index + offsetAngle),
+                y: height/2 - radius * Math.cos(PER_ABGLE* dataArray.index + offsetAngle)
+            }
+            a. 在坐标位置画圆，fillStyle 白色
+            b. 做剪辑区 clip() ，然后将 动画范围限制在 此园的范围内
+            c. 在剪辑区内 画上对应的icon
+            d. 偏移一定的坐标画上文字
+        3、 转盘滑动 
+            监听 touchMove 动作
+            得到两次滑动的两点之间的坐标(x1,y1)(x2,y2)
+            offsetAngle = Math.acos(Math.sqrt(Math.pow(x1-x0, 2) + Math.pow(y1-y0, 2)))
+
+
+     -->
+    <script>
+        function getOffsetAngle () {
+            offsetAngle = Math.acos(Math.sqrt(Math.pow(x1-x0, 2) + Math.pow(y1-y0, 2)))
+        }
+        function getDistance(x0,y0,x1,y1) {
+            
+        }
+    
+    </script>
+    <script>
+
+
+        var canvas = document.getElementById('canvas'),
+            context = canvas.getContext('2d'),
+
+            CENTROID_RADIUS = 10,
+            CENTROID_STROKE_STYLE = 'rgba(0, 0, 0, 0.5)',
+            CENTROID_FILL_STYLE = 'rgba(80, 190, 240, 0.6)',
+
+            RING_INNER_RADIUS = 35,
+            RING_OUTER_RADIUS = 55,
+
+            ANNOTATIONS_FILL_STYLE = 'rgba(0, 0, 230, 0.9)',
+            ANNOTATIONS_TEXT_SIZE = 12,
+
+            TICK_WIDTH = 10,
+            TICK_LONG_STROKE_STYLE = 'rgba(100, 140, 230, 0.9)',
+            TICK_SHORT_STROKE_STYLE = 'rgba(100, 140, 230, 0.7)',
+
+            TRACKING_DIAL_STROKING_STYLE = 'rgba(100, 140, 230, 0.5)',
+
+            GUIDEWIRE_STROKE_STYLE = 'goldenrod',
+            GUIDEWIRE_FILL_STYLE = 'rgba(250, 250, 0, 0.6)',
+
+            circle = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 100
+            };
+
+        // Functions..........................................................
+
+        // function drawGrid(color, stepx, stepy) {
+        //     context.save()
+
+        //     context.shadowColor = undefined;
+        //     context.shadowOffsetX = 0;
+        //     context.shadowOffsetY = 0;
+
+        //     context.strokeStyle = color;
+        //     context.fillStyle = '#ffffff';
+        //     context.lineWidth = 0.5;
+        //     context.fillRect(0, 0, context.canvas.width,
+        //         context.canvas.height);
+
+        //     for (var i = stepx + 0.5;
+        //         i < context.canvas.width; i += stepx) {
+        //         context.beginPath();
+        //         context.moveTo(i, 0);
+        //         context.lineTo(i, context.canvas.height);
+        //         context.stroke();
+        //     }
+
+        //     for (var i = stepy + 0.5;
+        //         i < context.canvas.height; i += stepy) {
+        //         context.beginPath();
+        //         context.moveTo(0, i);
+        //         context.lineTo(context.canvas.width, i);
+        //         context.stroke();
+        //     }
+
+        //     context.restore();
+        // }
+
+        function drawDial() {
+            var loc = { x: circle.x, y: circle.y };
+
+            drawCentroid();
+            drawCentroidGuidewire(loc);
+
+            drawRing();
+            drawTickInnerCircle();
+            drawTicks();
+            drawAnnotations();
+        }
+
+        function drawCentroid() {
+            context.beginPath();
+            context.save();
+            context.strokeStyle = CENTROID_STROKE_STYLE;
+            context.fillStyle = CENTROID_FILL_STYLE;
+            context.arc(circle.x, circle.y,
+                CENTROID_RADIUS, 0, Math.PI * 2, false);
+            context.stroke();
+            context.fill();
+            context.restore();
+        }
+
+        function drawCentroidGuidewire(loc) {
+            var angle = -Math.PI / 4,
+                radius, endpt;
+
+            radius = circle.radius + RING_OUTER_RADIUS;
+
+            if (loc.x >= circle.x) {
+                endpt = {
+                    x: circle.x + radius * Math.cos(angle),
+                    y: circle.y + radius * Math.sin(angle)
+                };
+            }
+            else {
+                endpt = {
+                    x: circle.x - radius * Math.cos(angle),
+                    y: circle.y - radius * Math.sin(angle)
+                };
+            }
+
+            context.save();
+
+            context.strokeStyle = GUIDEWIRE_STROKE_STYLE;
+            context.fillStyle = GUIDEWIRE_FILL_STYLE;
+
+            context.beginPath();
+            context.moveTo(circle.x, circle.y);
+            context.lineTo(endpt.x, endpt.y);
+            context.stroke();
+
+            context.beginPath();
+            context.strokeStyle = TICK_LONG_STROKE_STYLE;
+            context.arc(endpt.x, endpt.y, 5, 0, Math.PI * 2, false);
+            context.fill();
+            context.stroke();
+
+            context.restore();
+        }
+
+        function drawRing() {
+            drawRingOuterCircle();
+
+            context.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            context.arc(circle.x, circle.y,
+                circle.radius + RING_INNER_RADIUS,
+                0, Math.PI * 2, false);
+
+            context.fillStyle = 'rgba(100, 140, 230, 0.1)';
+            context.fill();
+            context.stroke();
+        }
+
+        function drawRingOuterCircle() {
+            context.shadowColor = 'rgba(0, 0, 0, 0.7)';
+            context.shadowOffsetX = 3,
+                context.shadowOffsetY = 3,
+                context.shadowBlur = 6,
+                context.strokeStyle = TRACKING_DIAL_STROKING_STYLE;
+            context.beginPath();
+            context.arc(circle.x, circle.y, circle.radius +
+                RING_OUTER_RADIUS, 0, Math.PI * 2, true);
+            context.stroke();
+        }
+
+        function drawTickInnerCircle() {
+            context.save();
+            context.beginPath();
+            context.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            context.arc(circle.x, circle.y,
+                circle.radius + RING_INNER_RADIUS - TICK_WIDTH,
+                0, Math.PI * 2, false);
+            context.stroke();
+            context.restore();
+        }
+
+        function drawTick(angle, radius, cnt) {
+            var tickWidth = cnt % 4 === 0 ? TICK_WIDTH : TICK_WIDTH / 2;
+
+            context.beginPath();
+
+            context.moveTo(circle.x + Math.cos(angle) * (radius - tickWidth),
+                circle.y + Math.sin(angle) * (radius - tickWidth));
+
+            context.lineTo(circle.x + Math.cos(angle) * (radius),
+                circle.y + Math.sin(angle) * (radius));
+
+            context.strokeStyle = TICK_SHORT_STROKE_STYLE;
+            context.stroke();
+        }
+
+        function drawTicks() {
+            var radius = circle.radius + RING_INNER_RADIUS,
+                ANGLE_MAX = 2 * Math.PI,
+                ANGLE_DELTA = Math.PI / 64,
+                tickWidth;
+
+            context.save();
+
+            for (var angle = 0, cnt = 0; angle < ANGLE_MAX;
+                angle += ANGLE_DELTA, cnt++) {
+                drawTick(angle, radius, cnt++);
+            }
+
+            context.restore();
+        }
+
+        function drawAnnotations() {
+            var radius = circle.radius + RING_INNER_RADIUS;
+
+            context.save();
+            context.fillStyle = ANNOTATIONS_FILL_STYLE;
+            context.font = ANNOTATIONS_TEXT_SIZE + 'px Helvetica';
+
+            for (var angle = 0; angle < 2 * Math.PI; angle += Math.PI / 8) {
+                context.beginPath();
+                context.fillText((angle * 180 / Math.PI).toFixed(0),
+                    circle.x + Math.cos(angle) * (radius - TICK_WIDTH * 2),
+                    circle.y 
+                    
+                    
+                    - Math.sin(angle) * (radius - TICK_WIDTH * 2));
+            }
+            context.restore();
+        }
+
+        // Initialization....................................................
+
+        context.shadowOffsetX = 2;
+        context.shadowOffsetY = 2;
+        context.shadowBlur = 4;
+
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        // drawGrid('lightgray', 10, 10);
+        drawDial();
+    </script>
+</body>
+
+</html>
