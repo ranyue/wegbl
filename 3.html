@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas width="600" height="300" id="webgl"></canvas>
+    <script src="./WebGL_Guide_Code/lib/webgl-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-matrix.js"></script>
+    <script src="./WebGL_Guide_Code/lib/webgl-debug.js"></script>
+    <script>
+        let VSHADER_SOURCE =
+            'attribute vec4 a_Position;\n' +
+            'attribute float a_PointSize;\n' +
+            'void main() { \n' +
+            ' gl_Position = a_Position;\n' +
+            ' gl_PointSize = a_PointSize;\n' +
+            '}\n';
+        let FSHADER_SOURCE =
+            'void main() {\n' +
+            ' gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);\n' +　//　颜色
+            '}\n';
+        function main() {
+            let canvas = document.getElementById('webgl')
+            let gl = canvas.getContext('webgl')
+            initShaders(gl,VSHADER_SOURCE,FSHADER_SOURCE)
+            //　获得对应的变量
+            let a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+            let a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize')
+            //　给变量赋值　后三个参数为　ｘ,y,z坐标
+            //　赋值之后　在　ｗｅｂｇｌ　系统里面会给　　ｓｈａｄｅｒ　语言　里面的　gl_Position 　赋值，
+            // 成功的将　坐标　用　ｊｓ　传入了　着色器
+            //  想顶点着色器　attribute　传值
+
+            var position = new Float32Array([0.0,0.0,0.0,1.0])
+            gl.vertexAttrib4fv(a_Position,position)
+            gl.vertexAttrib1f(a_PointSize,20.0)
+            gl.clearColor(1.0,0.0,0.0,1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.drawArrays(gl.POINTS, 0, 1)
+        }
+        main()
+    </script>
+</body>
+
+</html>

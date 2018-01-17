@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas width="600" height="300" id="webgl"></canvas>
+    <script src="./WebGL_Guide_Code/lib/webgl-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-matrix.js"></script>
+    <script src="./WebGL_Guide_Code/lib/webgl-debug.js"></script>
+    <script>
+        var VSHADER_SOURCE =
+            'attribute vec4 a_Position;\n' +
+            'attribute float a_PointSize;\n' +
+            'void main() {\n' +
+            '   gl_Position = a_Position;\n' +
+            '   gl_PointSize = a_PointSize;\n' +
+            '}'
+        var FSHADER_SOURCE =
+            'void main() {\n' +
+            '   gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n' +
+            '}'
+        var ANGLE_STEP = 45
+        function main() {
+            let canvas = document.getElementById('webgl')
+            let gl = canvas.getContext('webgl')
+            initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)
+            var n = initVertexBuffers(gl)
+            gl.clearColor(1.0, 0.0, 0.0, 1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)    
+            gl.drawArrays(gl.POINTS, 0, n)
+        }
+        // 递增  步数* 每步的角度     两次的时间差
+        function initVertexBuffers(gl) {
+            var vertices = new Float32Array([
+                0.0, 0.0, -0.5, -0.5, 0.5, -0.5
+            ])
+            var sizes = new Float32Array([
+                10.0, 20.0, 30.0
+            ]);
+            var n = 3
+            var sizeBuffer = gl.createBuffer();
+            var vertexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0)
+            gl.enableVertexAttribArray(a_Position)
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuffer)
+            gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW)
+            var a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize')
+            gl.vertexAttribPointer(a_PointSize, 1, gl.FLOAT, false, 0, 0)
+            gl.enableVertexAttribArray(a_PointSize)
+            return n
+        }
+        main()
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas width="600" height="300" id="webgl"></canvas>
+    <script src="./WebGL_Guide_Code/lib/webgl-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-matrix.js"></script>
+    <script src="./WebGL_Guide_Code/lib/webgl-debug.js"></script>
+    <script>
+        var VSHADER_SOURCE =
+            'attribute vec4 a_Position;\n' +
+            'void main() {\n' +
+            '  gl_Position = a_Position;\n' +
+            '}\n';
+        var FSHADER_SOURCE =
+            'precision mediump float;\n' + // Precision qualifier (See Chapter 6)
+            'uniform float u_Width;\n' +
+            'uniform float u_Height;\n' +
+            'void main() {\n' +
+            '   gl_FragColor = vec4(gl_FragCoord.x/u_Width, 0.0, gl_FragCoord.y/u_Height, 1.0);\n' +
+            '}\n';
+        var ANGLE_STEP = 45
+        function main() {
+            let canvas = document.getElementById('webgl')
+            let gl = canvas.getContext('webgl')
+            initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)
+            var n = initVertexBuffers(gl)
+            gl.clearColor(1.0, 1.0, 1.0, 1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.drawArrays(gl.TRIANGLES, 0, n);
+        }
+        // 递增  步数* 每步的角度     两次的时间差
+        function initVertexBuffers(gl) {
+            var vertices = new Float32Array([
+            0, 0.5,   -0.5, -0.5,   0.5, -0.5
+          ]);
+            var n = 3
+            var vertexBuffers = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffers)
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position')
+            gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0)
+            var u_Width = gl.getUniformLocation(gl.program, 'u_Width')
+            var u_Height = gl.getUniformLocation(gl.program, 'u_Height')
+            gl.uniform1f(u_Height, gl.drawingBufferWidth)
+            gl.uniform1f(u_Width, gl.drawingBufferHeight)
+            console.log(gl,gl.drawingBufferHeight)
+            gl.enableVertexAttribArray(a_Position)
+            gl.bindBuffer(gl.ARRAY_BUFFER, null)
+            return n
+        }
+        main()
+        // 执行顶点着色器，将缓冲对象中的数据 传递给 attribute 变量 a_Position, 
+        // 赋值之后，进入图形装配区，并储存
+        // 将所有顶点全部赋值 推至图形装配区
+        // 开始根据 gl.drawArrays 的第一个参数 装配图形
+        // 根据装配好的图形来组成像素，即光栅化 
+        // 逐片 调用片元着色器，对每个 片元（像素）处理，片元着色器会计算出片元（像素）的颜色，并写入颜色缓冲区。当所有片元被处理完成，浏览器会显示最终的结果
+
+    </script>
+</body>
+
+</html>

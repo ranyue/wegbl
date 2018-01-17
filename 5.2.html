@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas width="600" height="300" id="webgl"></canvas>
+    <script src="./WebGL_Guide_Code/lib/webgl-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-utils.js"></script>
+    <script src="./WebGL_Guide_Code/lib/cuon-matrix.js"></script>
+    <script src="./WebGL_Guide_Code/lib/webgl-debug.js"></script>
+    <script>
+        var VSHADER_SOURCE =
+            'attribute vec4 a_Position;\n' +
+            'attribute float a_PointSize;\n' +
+            'void main() {\n' +
+            '   gl_Position = a_Position;\n' +
+            '   gl_PointSize = a_PointSize;\n' +
+            '}'
+        var FSHADER_SOURCE =
+            'void main() {\n' +
+            '   gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n' +
+            '}'
+        var ANGLE_STEP = 45
+        function main() {
+            let canvas = document.getElementById('webgl')
+            let gl = canvas.getContext('webgl')
+            initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)
+            var n = initVertexBuffers(gl)
+            gl.clearColor(1.0, 0.0, 0.0, 1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.drawArrays(gl.POINTS, 0, n)
+        }
+        // 递增  步数* 每步的角度     两次的时间差
+        function initVertexBuffers(gl) {
+            var verticesSizes = new Float32Array([
+                0.0, 0.0, 10.0,
+                -0.5, -0.5, 20.0,
+                0.5, -0.5, 30.0
+            ]) 
+            var n = 3
+            var  vertexSizeBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexSizeBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, verticesSizes, gl.STATIC_DRAW);
+            var FSIZE = verticesSizes.BYTES_PER_ELEMENT
+            //  每个元素的字节长度  
+            console.log(FSIZE,'fsize')
+            var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE*3, 0)
+            // 偏移量为 0， 第二个参数为 2，每隔三个字节取值， 取三个参数里面的前两位
+            gl.enableVertexAttribArray(a_Position)
+            var a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize')
+            gl.vertexAttribPointer(a_PointSize, 1, gl.FLOAT, false, FSIZE*3, FSIZE*2)
+             // 偏移量为 2， 第二个参数为 2，一次截取三个参数， 取三个参数里面的最后一位
+            gl.enableVertexAttribArray(a_PointSize)
+            return n
+        }
+        main()
+    </script>
+</body>
+
+</html>
