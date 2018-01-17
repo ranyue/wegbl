@@ -18,9 +18,7 @@ var VSHADER_SOURCE =
 
 // Fragment shader program
 var FSHADER_SOURCE =
-  '#ifdef GL_ES\n' +
   'precision mediump float;\n' +
-  '#endif\n' +
   'varying vec4 v_Color;\n' +
   'void main() {\n' +
   '  gl_FragColor = v_Color;\n' +
